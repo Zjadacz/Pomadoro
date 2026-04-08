@@ -9,10 +9,6 @@
 - Audible alert when a session or break ends  
 - Easy to run with command-line arguments  
 
-## Requirements
-
-- [.NET Core](https://dotnet.microsoft.com/download) installed on your machine  
-
 ## Usage
 
 Run the application from the command line with two arguments:  
