@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="Pomadoro.csproj" />
+  <Project Path="src/Pomadoro.csproj" />
+  <Project Path="test/PomadoroTests.csproj" Id="32e2e4bf-99fc-4364-8976-108ac7af1b02" />
 </Solution>
