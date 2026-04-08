@@ -1,5 +1,4 @@
 ﻿using Pomadoro;
-using System.Collections;
 using System.Text;
 
 int workTime = 25;
@@ -29,7 +28,7 @@ if (args.Length > 2)
     return;
 }
 
-var timer = new PomadoroTimer(workTime, breakTime);
+var timer = new PomadoroTimer(workTime, breakTime, new ConsoleAdapter(), new AlarmPlayer(), new DelayProvider());
 await timer.Start();
 
 static void DisplayHelp(string message = "")

@@ -1,74 +1,52 @@
-﻿using NAudio.Wave;
-
-namespace Pomadoro
+﻿namespace Pomadoro
 {
-    internal class PomadoroTimer
+    public class PomadoroTimer(
+        int workTime, 
+        int breakTime, 
+        IConsole console, 
+        IAlarmPlayer alarmPlayer, 
+        IDelayProvider delayProvider)
     {
-        public int WorkTime { get; }
-        public int BreakTime { get; }
+        public readonly Dictionary<string, int> PhaseCounter = new();
 
-        public PomadoroTimer(int workTime, int breakTime)
-        {
-            WorkTime = workTime;
-            BreakTime = breakTime;
-        }
-
-        public async Task Start()
+        public async Task Start(bool runOnce = false)
         {
             try
             {
-                Console.CursorVisible = false;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Work phase starts!");
-                Console.Title = "Work Phase";
-
-                while (true)
+                console.CursorVisible = false;
+                do
                 {
-                    // Working
-                    var workTimeSpan = TimeSpan.FromMinutes(WorkTime);
-                    while (workTimeSpan > TimeSpan.Zero)
-                    {
-                        Console.Write($"\r{workTimeSpan:mm\\:ss}");
-                        await Task.Delay(1000);
-                        workTimeSpan = workTimeSpan.Subtract(TimeSpan.FromSeconds(1));
-                    }
-
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\rFinished work phase. Break phase starts!");
-                    Console.Title = "Break Phase";
-                    PlaySound();
-
-                    // Break
-                    var breakTimeSpan = TimeSpan.FromMinutes(BreakTime);
-                    while (breakTimeSpan > TimeSpan.Zero)
-                    {
-                        Console.Write($"\r{breakTimeSpan:mm\\:ss}");
-                        await Task.Delay(1000);
-                        breakTimeSpan = breakTimeSpan.Subtract(TimeSpan.FromSeconds(1));
-                    }
-
-                    Console.WriteLine("\rFinished break. Work phase starts!");
-                    Console.Title = "Work Phase";
-                    PlaySound();
+                    await RunPhase("Work", TimeSpan.FromMinutes(workTime), ConsoleColor.Red);
+                    await RunPhase("Break", TimeSpan.FromMinutes(breakTime), ConsoleColor.Green);
                 }
+                while (!runOnce);
             }
             finally 
             {
-                Console.CursorVisible = true;
+                console.CursorVisible = true;
             }
         }
 
-        public void PlaySound()
+        public async Task RunPhase(string phaseName, TimeSpan duration, ConsoleColor color)
         {
-            using var audioFile = new AudioFileReader("melody_alarm.wav");
-            using var outputDevice = new WaveOutEvent();
-            outputDevice.Init(audioFile);
-            outputDevice.Play();
+            console.ForegroundColor = color;
+            console.WriteLine($"{phaseName} phase starts!");
+            console.Title = $"{phaseName} Phase";
+            var timeLeft = duration;
 
-            while (outputDevice.PlaybackState == PlaybackState.Playing)
+            while (timeLeft > TimeSpan.Zero)
             {
-                Thread.Sleep(100);
+                console.Write($"\r{timeLeft:mm\\:ss}");
+                console.Title = $"{phaseName} Phase {timeLeft:mm\\:ss}";
+                await delayProvider.Delay(TimeSpan.FromSeconds(1));
+                timeLeft = timeLeft.Subtract(TimeSpan.FromSeconds(1));
             }
+
+            console.Title = $"{phaseName} Phase finished!";
+            console.WriteLine("\r00:00");
+
+            PhaseCounter[phaseName] = PhaseCounter.GetValueOrDefault(phaseName) + 1;
+            alarmPlayer.PlaySound();
         }
     }
 }

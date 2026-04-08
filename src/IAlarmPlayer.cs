@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Pomadoro
 {
-    internal class CmdHelper
+    public interface IAlarmPlayer
     {
-
+        void PlaySound();
     }
 }
